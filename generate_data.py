@@ -9,7 +9,10 @@ Created on Sun Sep 13 20:35:02 2020
 from kano_wand.kano_wand import Shop, Wand, PATTERN
 import moosegesture as mg
 import csv
+import time
+import subprocess as sp
 
+wand_address = 'F5:FA:A9:BF:E0:6B'
 
 spell_name = 'lumos'
 
@@ -33,25 +36,7 @@ direction = {"D": "Down", "L": "Left", "R": "Right", "U": "Up",
              "UL": "Up-Left", "UR": "Up-Right"}
 
 print()
-print('Do your best to make the following spell: {}'.format(spell_name))
-print('It has the shape: {}'.format([direction[x] for x in inv_spell_def[spell_name]]))
-print('Wait for \'In [2]:\' to pop up,')
-print('then hold the button down when you cast the spell.')
-
-
-def make_name(spell_name):
-    from os import path
-    
-    ii = 0
-    possible_path = 'gesture_data/{}/{}_{}.csv'
-    while path.exists(possible_path.format(spell_name, spell_name, ii)):
-        ii += 1
-        
-        
-    return possible_path.format(spell_name, spell_name, ii)
-
-
-
+print('Starting geocache')
 
 
 class GestureWand(Wand):
@@ -83,14 +68,8 @@ class GestureWand(Wand):
                 self.spell = self.gestures[closest[0]]
             
             self.vibrate(PATTERN.SHORT)
-            #print("You made the following spell: {}: {}".format(self.spell, gesture))
+            print("You made the following spell: {}: {}".format(self.spell, gesture))
             
-            file_name = make_name(spell_name)
-            
-            with open(file_name,'w') as out:
-                csv_out=csv.writer(out)
-                for row in self.wrists:
-                    csv_out.writerow(row)
             self.positions = []
             self.wrists = []
 
@@ -98,10 +77,30 @@ shop = Shop(wand_class=GestureWand)
 wands = []
 
 try:
-    while len(wands) == 0:
-        print("Scanning...")
-        wands = shop.scan(connect=True)
+    while True:
+        while len(wands) == 0:
+            print("Scanning...")
+            wands = shop.scan(connect=True)
+        
+        wand = wands[0]
+        
+        while wand.connected:
+            print('still connected')
+            stdoutdata = sp.getoutput("hcitool con")
+            wand_on = wand_address in stdoutdata
+            if not(wand_on):
+                wand.disconnect()
+            time.sleep(2)
+        
+        print('wand disconnected')
+        wands = []
 
 except KeyboardInterrupt as e:
     for wand in wands:
         wand.disconnect()
+        
+        
+        
+        
+        
+        
