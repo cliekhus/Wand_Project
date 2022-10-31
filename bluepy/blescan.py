@@ -119,7 +119,7 @@ def main():
     scanner = btle.Scanner(arg.hci).withDelegate(ScanPrint(arg))
 
     print (ANSI_RED + "Scanning for devices..." + ANSI_OFF)
-    devices = scanner.scan(arg.timeout)
+    devices = scanner.scan(arg.timeout, passive=True)
 
     if arg.discover:
         print (ANSI_RED + "Discovering services..." + ANSI_OFF)
